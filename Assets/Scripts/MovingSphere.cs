@@ -68,7 +68,7 @@ public class MovingSphere : MonoBehaviour
             velocity = Vector3.zero;
         }
 
-        onGround = false;
+        ClearState();
     }
 
     private void UpdateState()
@@ -77,6 +77,7 @@ public class MovingSphere : MonoBehaviour
         if (onGround)
         {
             jumpPhase = 0;
+            contactNormal.Normalize();
         }
         else
         {
@@ -117,6 +118,12 @@ public class MovingSphere : MonoBehaviour
         }
     }
 
+    private void ClearState()
+    {
+        onGround = false;
+        contactNormal = Vector3.zero;
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         EvaluateCollision(collision);
@@ -135,7 +142,7 @@ public class MovingSphere : MonoBehaviour
             if (normal.y >= minGroundDotProduct)
             {
                 onGround = true;
-                contactNormal = normal;
+                contactNormal += normal;
             }
         }
     }
