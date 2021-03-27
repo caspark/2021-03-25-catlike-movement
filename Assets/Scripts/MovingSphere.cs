@@ -19,7 +19,9 @@ public class MovingSphere : MonoBehaviour
 
     private Rigidbody body;
 
-    public bool onGround;
+    private int groundContactCount;
+
+    public bool OnGround => groundContactCount > 0;
 
     private int jumpPhase;
 
@@ -49,6 +51,10 @@ public class MovingSphere : MonoBehaviour
 
         desiredJump |= Input.GetButtonDown("Jump");
         desiredHardStop |= Input.GetButtonDown("Fire3");
+        
+        GetComponent<Renderer>().material.SetColor(
+            "_BaseColor", Color.white * (groundContactCount * 0.25f)
+        );
     }
 
     private void FixedUpdate()
@@ -74,10 +80,13 @@ public class MovingSphere : MonoBehaviour
     private void UpdateState()
     {
         velocity = body.velocity;
-        if (onGround)
+        if (OnGround)
         {
             jumpPhase = 0;
-            contactNormal.Normalize();
+            if (groundContactCount > 1)
+            {
+                contactNormal.Normalize();
+            }
         }
         else
         {
@@ -93,7 +102,7 @@ public class MovingSphere : MonoBehaviour
         float currentX = Vector3.Dot(velocity, xAxis);
         float currentZ = Vector3.Dot(velocity, zAxis);
 
-        float acceleration = onGround ? maxAcceleration : maxAirAcceleration;
+        float acceleration = OnGround ? maxAcceleration : maxAirAcceleration;
         float maxSpeedChange = acceleration * Time.deltaTime;
 
         float newX = Mathf.MoveTowards(currentX, desiredVelocity.x, maxSpeedChange);
@@ -104,7 +113,7 @@ public class MovingSphere : MonoBehaviour
 
     private void Jump()
     {
-        if (onGround || jumpPhase < maxAirJumps)
+        if (OnGround || jumpPhase < maxAirJumps)
         {
             jumpPhase += 1;
             float jumpSpeed = Mathf.Sqrt((-2f * Physics.gravity.y * jumpHeight));
@@ -120,7 +129,7 @@ public class MovingSphere : MonoBehaviour
 
     private void ClearState()
     {
-        onGround = false;
+        groundContactCount = 0;
         contactNormal = Vector3.zero;
     }
 
@@ -141,7 +150,7 @@ public class MovingSphere : MonoBehaviour
             Vector3 normal = collision.GetContact(i).normal;
             if (normal.y >= minGroundDotProduct)
             {
-                onGround = true;
+                groundContactCount += 1;
                 contactNormal += normal;
             }
         }
