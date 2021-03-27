@@ -139,6 +139,7 @@ public class MovingSphere : MonoBehaviour
         }
         else if (OnSteep)
         {
+            print("on steep!");
             jumpDirection = steepNormal;
             jumpPhase = 0;
         }
@@ -158,6 +159,7 @@ public class MovingSphere : MonoBehaviour
         stepsSinceLastJump = 0;
         jumpPhase += 1;
         float jumpSpeed = Mathf.Sqrt((-2f * Physics.gravity.y * jumpHeight));
+        jumpDirection = (jumpDirection + Vector3.up).normalized; // make jumps always go up a bit
         float alignedSpeed = Vector3.Dot(velocity, jumpDirection);
         if (alignedSpeed > 0f)
         {
