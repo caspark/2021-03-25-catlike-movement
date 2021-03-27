@@ -14,6 +14,7 @@ public class MovingSphere : MonoBehaviour
     [SerializeField, Range(0f, 90f)] float maxGroundAngle = 25f;
     [SerializeField, Range(0f, 100f)] float maxSnapSpeed = 100f;
     [SerializeField, Min(0f)] float probeDistance = 1f;
+    [SerializeField] private LayerMask probeMask = -1;
 
     private Vector3 velocity, desiredVelocity;
 
@@ -150,7 +151,8 @@ public class MovingSphere : MonoBehaviour
         {
             return false;
         }
-        if (!Physics.Raycast(body.position, Vector3.down, out RaycastHit hit, probeDistance))
+        if (!Physics.Raycast(body.position, Vector3.down, out RaycastHit hit,
+            probeDistance, probeMask))
         {
             return false;
         }
