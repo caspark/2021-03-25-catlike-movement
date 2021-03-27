@@ -64,10 +64,6 @@ public class MovingSphere : MonoBehaviour
 
         desiredJump |= Input.GetButtonDown("Jump");
         desiredHardStop |= Input.GetButtonDown("Fire3");
-
-        GetComponent<Renderer>().material.SetColor(
-            "_BaseColor", OnGround ? Color.black : Color.white
-        );
     }
 
     private void FixedUpdate()
