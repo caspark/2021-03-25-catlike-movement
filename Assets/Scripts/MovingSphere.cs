@@ -98,7 +98,10 @@ public class MovingSphere : MonoBehaviour
         if (OnGround || SnapToGround() || CheckSteepContacts())
         {
             stepsSinceLastGrounded = 0;
-            jumpPhase = 0;
+            if (stepsSinceLastJump > 1)
+            {
+                jumpPhase = 0;
+            }
             if (groundContactCount > 1)
             {
                 contactNormal.Normalize();
@@ -129,19 +132,39 @@ public class MovingSphere : MonoBehaviour
 
     private void Jump()
     {
-        if (OnGround || jumpPhase < maxAirJumps)
+        Vector3 jumpDirection;
+        if (OnGround)
         {
-            stepsSinceLastJump = 0;
-            jumpPhase += 1;
-            float jumpSpeed = Mathf.Sqrt((-2f * Physics.gravity.y * jumpHeight));
-            float alignedSpeed = Vector3.Dot(velocity, contactNormal);
-            if (alignedSpeed > 0f)
-            {
-                jumpSpeed = Mathf.Max(jumpSpeed - alignedSpeed, 0f);
-            }
-
-            velocity += contactNormal * jumpSpeed;
+            jumpDirection = contactNormal;
         }
+        else if (OnSteep)
+        {
+            jumpDirection = steepNormal;
+            jumpPhase = 0;
+        }
+        else if (maxAirJumps > 0 && jumpPhase <= maxAirJumps)
+        {
+            if (jumpPhase == 0)
+            {
+                jumpPhase = 1;
+            }
+            jumpDirection = contactNormal;
+        }
+        else
+        {
+            return;
+        }
+
+        stepsSinceLastJump = 0;
+        jumpPhase += 1;
+        float jumpSpeed = Mathf.Sqrt((-2f * Physics.gravity.y * jumpHeight));
+        float alignedSpeed = Vector3.Dot(velocity, jumpDirection);
+        if (alignedSpeed > 0f)
+        {
+            jumpSpeed = Mathf.Max(jumpSpeed - alignedSpeed, 0f);
+        }
+
+        velocity += jumpDirection * jumpSpeed;
     }
 
     private void ClearState()
@@ -207,7 +230,8 @@ public class MovingSphere : MonoBehaviour
             {
                 groundContactCount += 1;
                 contactNormal += normal;
-            } else if (normal.y > -0.01f)
+            }
+            else if (normal.y > -0.01f)
             {
                 steepContactCount += 1;
                 steepNormal += normal;
@@ -237,6 +261,7 @@ public class MovingSphere : MonoBehaviour
                 return true;
             }
         }
+
         return false;
     }
 }
