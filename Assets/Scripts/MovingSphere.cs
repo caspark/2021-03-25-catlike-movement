@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ProBuilder;
 
 public class MovingSphere : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class MovingSphere : MonoBehaviour
 
     private Vector3 velocity, desiredVelocity;
 
-    private bool desiredJump;
+    private bool desiredJump, desiredHardStop;
 
     private Rigidbody body;
 
@@ -23,6 +24,8 @@ public class MovingSphere : MonoBehaviour
     private int jumpPhase;
 
     private float minGroundDotProduct;
+
+    private Vector3 contactNormal;
 
     private void OnValidate()
     {
@@ -45,6 +48,7 @@ public class MovingSphere : MonoBehaviour
         this.desiredVelocity = new Vector3(playerInput.x, 0f, playerInput.y) * maxSpeed;
 
         desiredJump |= Input.GetButtonDown("Jump");
+        desiredHardStop |= Input.GetButtonDown("Fire3");
     }
 
     private void FixedUpdate()
@@ -61,6 +65,11 @@ public class MovingSphere : MonoBehaviour
         }
 
         body.velocity = velocity;
+        if (desiredHardStop)
+        {
+            desiredHardStop = false;
+            velocity = Vector3.zero;
+        }
 
         onGround = false;
     }
@@ -72,6 +81,10 @@ public class MovingSphere : MonoBehaviour
         {
             jumpPhase = 0;
         }
+        else
+        {
+            contactNormal = Vector3.up;
+        }
     }
 
 
@@ -81,12 +94,12 @@ public class MovingSphere : MonoBehaviour
         {
             jumpPhase += 1;
             float jumpSpeed = Mathf.Sqrt((-2f * Physics.gravity.y * jumpHeight));
-            if (velocity.y > 0f)
+            float alignedSpeed = Vector3.Dot(velocity, contactNormal);
+            if (alignedSpeed > 0f)
             {
-                jumpSpeed = Mathf.Max(jumpSpeed - velocity.y, 0f);
+                jumpSpeed = Mathf.Max(jumpSpeed - alignedSpeed, 0f);
             }
-
-            velocity.y += jumpSpeed;
+            velocity += contactNormal * jumpSpeed;
         }
     }
 
@@ -105,7 +118,11 @@ public class MovingSphere : MonoBehaviour
         for (int i = 0; i < collision.contactCount; i++)
         {
             Vector3 normal = collision.GetContact(i).normal;
-            onGround |= normal.y >= minGroundDotProduct;
+            if (normal.y >= minGroundDotProduct)
+            {
+                onGround = true;
+                contactNormal = normal;
+            }
         }
     }
 }
