@@ -110,13 +110,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: deca4b7cc9bae104c92bae3dd90339c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 16.7
-  maxAcceleration: 100
+  maxSpeed: 10
+  maxAcceleration: 10
   maxAirAcceleration: 0
   jumpHeight: 2
   maxAirJumps: 3
-  maxGroundAngle: 82
-  onGround: 0
+  maxGroundAngle: 45
 --- !u!96 &8726455519200679217
 TrailRenderer:
   serializedVersion: 2
