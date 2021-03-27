@@ -12,9 +12,11 @@ public class MovingSphere : MonoBehaviour
     [SerializeField, Range(0f, 10f)] float jumpHeight = 2f;
     [SerializeField, Range(0, 5)] int maxAirJumps = 0;
     [SerializeField, Range(0f, 90f)] float maxGroundAngle = 25f;
+    [SerializeField, Range(0f, 90f)] float maxStairsAngle = 50f;
     [SerializeField, Range(0f, 100f)] float maxSnapSpeed = 100f;
     [SerializeField, Min(0f)] float probeDistance = 1f;
     [SerializeField] private LayerMask probeMask = -1;
+    [SerializeField] private LayerMask stairsMask = -1;
 
     private Vector3 velocity, desiredVelocity;
 
@@ -29,6 +31,7 @@ public class MovingSphere : MonoBehaviour
     private int jumpPhase;
 
     private float minGroundDotProduct;
+    private float minStairsDotProduct;
 
     private Vector3 contactNormal;
 
@@ -38,6 +41,7 @@ public class MovingSphere : MonoBehaviour
     private void OnValidate()
     {
         minGroundDotProduct = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
+        minStairsDotProduct = Mathf.Cos(maxStairsAngle * Mathf.Deg2Rad);
     }
 
     private void Awake()
@@ -162,7 +166,7 @@ public class MovingSphere : MonoBehaviour
             return false;
         }
 
-        if (hit.normal.y < minGroundDotProduct)
+        if (hit.normal.y < GetMinDot(hit.collider.gameObject.layer))
         {
             return false;
         }
@@ -190,10 +194,11 @@ public class MovingSphere : MonoBehaviour
 
     private void EvaluateCollision(Collision collision)
     {
+        float minDot = GetMinDot(collision.gameObject.layer);
         for (int i = 0; i < collision.contactCount; i++)
         {
             Vector3 normal = collision.GetContact(i).normal;
-            if (normal.y >= minGroundDotProduct)
+            if (normal.y >= minDot)
             {
                 groundContactCount += 1;
                 contactNormal += normal;
@@ -204,5 +209,10 @@ public class MovingSphere : MonoBehaviour
     Vector3 ProjectOnContactPlane(Vector3 vector)
     {
         return vector - contactNormal * Vector3.Dot(vector, contactNormal);
+    }
+
+    private float GetMinDot(int layer)
+    {
+        return (stairsMask & (1 << layer)) == 0 ? minGroundDotProduct : minStairsDotProduct;
     }
 }
