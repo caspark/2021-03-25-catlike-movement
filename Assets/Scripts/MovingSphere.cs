@@ -25,8 +25,10 @@ public class MovingSphere : MonoBehaviour
     private Rigidbody body;
 
     private int groundContactCount;
+    private int steepContactCount;
 
     public bool OnGround => groundContactCount > 0;
+    public bool OnSteep => steepContactCount > 0;
 
     private int jumpPhase;
 
@@ -34,6 +36,7 @@ public class MovingSphere : MonoBehaviour
     private float minStairsDotProduct;
 
     private Vector3 contactNormal;
+    private Vector3 steepNormal;
 
     private int stepsSinceLastGrounded;
     private int stepsSinceLastJump;
@@ -92,7 +95,7 @@ public class MovingSphere : MonoBehaviour
         stepsSinceLastGrounded += 1;
         stepsSinceLastJump += 1;
         velocity = body.velocity;
-        if (OnGround || SnapToGround())
+        if (OnGround || SnapToGround() || CheckSteepContacts())
         {
             stepsSinceLastGrounded = 0;
             jumpPhase = 0;
@@ -144,7 +147,9 @@ public class MovingSphere : MonoBehaviour
     private void ClearState()
     {
         groundContactCount = 0;
+        steepContactCount = 0;
         contactNormal = Vector3.zero;
+        steepNormal = Vector3.zero;
     }
 
     private bool SnapToGround()
@@ -202,6 +207,10 @@ public class MovingSphere : MonoBehaviour
             {
                 groundContactCount += 1;
                 contactNormal += normal;
+            } else if (normal.y > -0.01f)
+            {
+                steepContactCount += 1;
+                steepNormal += normal;
             }
         }
     }
@@ -214,5 +223,20 @@ public class MovingSphere : MonoBehaviour
     private float GetMinDot(int layer)
     {
         return (stairsMask & (1 << layer)) == 0 ? minGroundDotProduct : minStairsDotProduct;
+    }
+
+    private bool CheckSteepContacts()
+    {
+        if (steepContactCount > 1)
+        {
+            steepNormal.Normalize();
+            if (steepNormal.y >= minGroundDotProduct)
+            {
+                groundContactCount = 1;
+                contactNormal = steepNormal;
+                return true;
+            }
+        }
+        return false;
     }
 }
