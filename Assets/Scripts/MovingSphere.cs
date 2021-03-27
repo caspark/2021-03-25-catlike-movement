@@ -57,7 +57,7 @@ public class MovingSphere : MonoBehaviour
 
         desiredJump |= Input.GetButtonDown("Jump");
         desiredHardStop |= Input.GetButtonDown("Fire3");
-        
+
         GetComponent<Renderer>().material.SetColor(
             "_BaseColor", OnGround ? Color.black : Color.white
         );
@@ -149,20 +149,24 @@ public class MovingSphere : MonoBehaviour
         {
             return false;
         }
+
         float speed = velocity.magnitude;
         if (speed > maxSnapSpeed)
         {
             return false;
         }
+
         if (!Physics.Raycast(body.position, Vector3.down, out RaycastHit hit,
             probeDistance, probeMask))
         {
             return false;
         }
+
         if (hit.normal.y < minGroundDotProduct)
         {
             return false;
         }
+
         groundContactCount = 1;
         contactNormal = hit.normal;
         float dot = Vector3.Dot(velocity, hit.normal);
