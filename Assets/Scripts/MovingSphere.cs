@@ -33,6 +33,7 @@ public class MovingSphere : MonoBehaviour
     private Vector3 contactNormal;
 
     private int stepsSinceLastGrounded;
+    private int stepsSinceLastJump;
 
     private void OnValidate()
     {
@@ -85,6 +86,7 @@ public class MovingSphere : MonoBehaviour
     private void UpdateState()
     {
         stepsSinceLastGrounded += 1;
+        stepsSinceLastJump += 1;
         velocity = body.velocity;
         if (OnGround || SnapToGround())
         {
@@ -122,6 +124,7 @@ public class MovingSphere : MonoBehaviour
     {
         if (OnGround || jumpPhase < maxAirJumps)
         {
+            stepsSinceLastJump = 0;
             jumpPhase += 1;
             float jumpSpeed = Mathf.Sqrt((-2f * Physics.gravity.y * jumpHeight));
             float alignedSpeed = Vector3.Dot(velocity, contactNormal);
@@ -142,7 +145,7 @@ public class MovingSphere : MonoBehaviour
 
     private bool SnapToGround()
     {
-        if (stepsSinceLastGrounded > 1)
+        if (stepsSinceLastGrounded > 1 || stepsSinceLastJump <= 2)
         {
             return false;
         }
